@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>F&V Seasonality Planner - Noon Minutes</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            padding-bottom: 80px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px;
+            border-radius: 12px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 15px;
+            font-weight: 500;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .content {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+        }
+
+        .section-title {
+            font-size: 20px;
+            color: #2d3748;
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        .month-selector {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+        }
+
+        .month-btn {
+            padding: 8px 16px;
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            color: #4a5568;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s;
+        }
+
+        .month-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .region-cards {
+            display: grid;
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .region-card {
+            background: linear-gradient(135deg, #f6f8fb 0%, #ffffff 100%);
+            border-radius: 12px;
+            padding: 16px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .region-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .region-flag {
+            font-size: 24px;
+            margin-right: 10px;
+        }
+
+        .region-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .sku-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .sku-tag {
+            padding: 6px 12px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            font-size: 13px;
+            color: #4a5568;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .sku-tag.peak {
+            background: #48bb78;
+            color: white;
+            border-color: #48bb78;
+            font-weight: 500;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #a0aec0;
+        }
+
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .sku-selector {
+            margin-bottom: 20px;
+        }
+
+        .select-wrapper {
+            position: relative;
+        }
+
+        select {
+            width: 100%;
+            padding: 14px;
+            padding-right: 40px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 15px;
+            color: #2d3748;
+            background: white;
+            cursor: pointer;
+            appearance: none;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .select-wrapper::after {
+            content: '▼';
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            color: #a0aec0;
+            font-size: 12px;
+        }
+
+        .matrix-container {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th {
+            background: #f7fafc;
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+            color: #4a5568;
+            border-bottom: 2px solid #e2e8f0;
+            position: sticky;
+            top: 0;
+        }
+
+        td {
+            padding: 12px 8px;
+            border-bottom: 1px solid #f0f0f0;
+            text-align: center;
+        }
+
+        .season-cell {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .season-peak {
+            background: #48bb78;
+            color: white;
+        }
+
+        .season-available {
+            background: #edf2f7;
+            color: #4a5568;
+        }
+
+        .season-none {
+            color: #cbd5e0;
+        }
+
+        .legend {
+            display: flex;
+            gap: 16px;
+            margin-top: 16px;
+            padding: 12px;
+            background: #f7fafc;
+            border-radius: 8px;
+            font-size: 12px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 16px;
+                padding-bottom: 70px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            th, td {
+                padding: 10px 6px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🥬 F&V Seasonality Planner</h1>
+            <p>Noon Minutes - Dubai Commercial Planning</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('upcoming')">📅 Upcoming Season</button>
+            <button class="tab" onclick="showTab('lookup')">🔍 SKU Lookup</button>
+        </div>
+
+        <div id="upcoming-tab" class="content">
+            <div class="section-title">Next Month's Seasonal SKUs</div>
+            <div class="month-selector" id="month-selector"></div>
+            <div id="upcoming-content"></div>
+        </div>
+
+        <div id="lookup-tab" class="content" style="display: none;">
+            <div class="section-title">SKU Seasonality Matrix</div>
+            <div class="sku-selector">
+                <div class="select-wrapper">
+                    <select id="sku-select" onchange="updateMatrix()">
+                        <option value="">Select a SKU...</option>
+                    </select>
+                </div>
+            </div>
+            <div id="matrix-content"></div>
+        </div>
+    </div>
+
+    <script>
+        // Comprehensive seasonality data
+        const seasonalityData = {
+            "Potato": {
+                "USA": { peak: [3,4,5,9,10], available: [1,2,6,7,8,11,12] },
+                "India": { peak: [1,2,3,11,12], available: [4,5,6,7,8,9,10] },
+                "Egypt": { peak: [3,4,5], available: [1,2,6,7,8,9,10,11,12] },
+                "Netherlands": { peak: [6,7,8,9], available: [1,2,3,4,5,10,11,12] },
+                "China": { peak: [4,5,6,10,11], available: [1,2,3,7,8,9,12] }
+            },
+            "Tomato": {
+                "USA": { peak: [6,7,8], available: [1,2,3,4,5,9,10,11,12] },
+                "Spain": { peak: [5,6,7,8,9], available: [1,2,3,4,10,11,12] },
+                "India": { peak: [1,2,11,12], available: [3,4,5,6,7,8,9,10] },
+                "Mexico": { peak: [11,12,1,2,3], available: [4,5,6,7,8,9,10] },
+                "Morocco": { peak: [4,5,6], available: [1,2,3,7,8,9,10,11,12] }
+            },
+            "Apple": {
+                "USA": { peak: [9,10,11], available: [1,2,3,4,5,6,7,8,12] },
+                "China": { peak: [9,10,11,12], available: [1,2,3,4,5,6,7,8] },
+                "Poland": { peak: [9,10], available: [1,2,3,4,5,6,7,8,11,12] },
+                "India": { peak: [8,9,10], available: [1,2,3,4,5,6,7,11,12] },
+                "Chile": { peak: [3,4,5], available: [1,2,6,7,8,9,10,11,12] }
+            },
+            "Orange": {
+                "USA": { peak: [12,1,2,3], available: [4,5,6,7,8,9,10,11] },
+                "Spain": { peak: [12,1,2,3,4], available: [5,6,7,8,9,10,11] },
+                "Egypt": { peak: [12,1,2,3], available: [4,5,6,7,8,9,10,11] },
+                "South Africa": { peak: [6,7,8,9], available: [1,2,3,4,5,10,11,12] },
+                "Brazil": { peak: [6,7,8], available: [1,2,3,4,5,9,10,11,12] }
+            },
+            "Mango": {
+                "India": { peak: [4,5,6], available: [3,7] },
+                "Pakistan": { peak: [5,6,7], available: [4,8] },
+                "Mexico": { peak: [3,4,5,6], available: [1,2,7,8] },
+                "Thailand": { peak: [3,4,5], available: [2,6,7] },
+                "Brazil": { peak: [11,12,1], available: [2,3,10] }
+            },
+            "Onion": {
+                "India": { peak: [1,2,3,11,12], available: [4,5,6,7,8,9,10] },
+                "USA": { peak: [8,9,10], available: [1,2,3,4,5,6,7,11,12] },
+                "Egypt": { peak: [4,5,6], available: [1,2,3,7,8,9,10,11,12] },
+                "Netherlands": { peak: [7,8,9], available: [1,2,3,4,5,6,10,11,12] },
+                "China": { peak: [5,6,7], available: [1,2,3,4,8,9,10,11,12] }
+            },
+            "Carrot": {
+                "USA": { peak: [9,10,11], available: [1,2,3,4,5,6,7,8,12] },
+                "China": { peak: [10,11,12,1], available: [2,3,4,5,6,7,8,9] },
+                "Australia": { peak: [5,6,7], available: [1,2,3,4,8,9,10,11,12] },
+                "Poland": { peak: [8,9,10], available: [1,2,3,4,5,6,7,11,12] },
+                "Israel": { peak: [11,12,1,2], available: [3,4,5,6,7,8,9,10] }
+            },
+            "Banana": {
+                "Ecuador": { peak: [1,2,3,4,5,6,7,8,9,10,11,12], available: [] },
+                "Philippines": { peak: [1,2,3,4,5,6,7,8,9,10,11,12], available: [] },
+                "India": { peak: [1,2,3,4,5,6,7,8,9,10,11,12], available: [] },
+                "Costa Rica": { peak: [1,2,3,4,5,6,7,8,9,10,11,12], available: [] },
+                "Colombia": { peak: [1,2,3,4,5,6,7,8,9,10,11,12], available: [] }
+            },
+            "Cucumber": {
+                "Spain": { peak: [5,6,7,8], available: [1,2,3,4,9,10,11,12] },
+                "Netherlands": { peak: [4,5,6,7,8], available: [1,2,3,9,10,11,12] },
+                "Mexico": { peak: [11,12,1,2], available: [3,4,5,6,7,8,9,10] },
+                "Turkey": { peak: [5,6,7], available: [1,2,3,4,8,9,10,11,12] },
+                "UAE": { peak: [11,12,1,2,3], available: [4,5,6,7,8,9,10] }
+            },
+            "Lettuce": {
+                "USA": { peak: [4,5,6], available: [1,2,3,7,8,9,10,11,12] },
+                "Spain": { peak: [11,12,1,2,3], available: [4,5,6,7,8,9,10] },
+                "Mexico": { peak: [11,12,1,2], available: [3,4,5,6,7,8,9,10] },
+                "UAE": { peak: [11,12,1,2,3,4], available: [5,6,7,8,9,10] },
+                "Netherlands": { peak: [5,6,7,8], available: [1,2,3,4,9,10,11,12] }
+            }
+        };
+
+        const regionFlags = {
+            "USA": "🇺🇸",
+            "India": "🇮🇳",
+            "Egypt": "🇪🇬",
+            "Netherlands": "🇳🇱",
+            "China": "🇨🇳",
+            "Spain": "🇪🇸",
+            "Mexico": "🇲🇽",
+            "Morocco": "🇲🇦",
+            "Poland": "🇵🇱",
+            "Chile": "🇨🇱",
+            "South Africa": "🇿🇦",
+            "Brazil": "🇧🇷",
+            "Pakistan": "🇵🇰",
+            "Thailand": "🇹🇭",
+            "Australia": "🇦🇺",
+            "Israel": "🇮🇱",
+            "Ecuador": "🇪🇨",
+            "Philippines": "🇵🇭",
+            "Costa Rica": "🇨🇷",
+            "Colombia": "🇨🇴",
+            "Turkey": "🇹🇷",
+            "UAE": "🇦🇪"
+        };
+
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        let currentMonth = new Date().getMonth() + 1;
+
+        function init() {
+            renderMonthSelector();
+            populateSKUSelector();
+            renderUpcoming();
+        }
+
+        function renderMonthSelector() {
+            const selector = document.getElementById('month-selector');
+            const currentDate = new Date();
+            
+            for (let i = 0; i < 12; i++) {
+                const date = new Date(currentDate.getFullYear(), currentDate.getMonth() + i, 1);
+                const monthNum = date.getMonth() + 1;
+                const monthName = months[date.getMonth()];
+                
+                const btn = document.createElement('button');
+                btn.className = 'month-btn' + (i === 1 ? ' active' : '');
+                btn.textContent = monthName;
+                btn.onclick = () => selectMonth(monthNum, btn);
+                selector.appendChild(btn);
+            }
+            
+            currentMonth = new Date().getMonth() + 2;
+            if (currentMonth > 12) currentMonth -= 12;
+        }
+
+        function selectMonth(month, btn) {
+            document.querySelectorAll('.month-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentMonth = month;
+            renderUpcoming();
+        }
+
+        function renderUpcoming() {
+            const content = document.getElementById('upcoming-content');
+            const regionData = {};
+
+            for (const [sku, regions] of Object.entries(seasonalityData)) {
+                for (const [region, seasons] of Object.entries(regions)) {
+                    if (seasons.peak.includes(currentMonth)) {
+                        if (!regionData[region]) {
+                            regionData[region] = [];
+                        }
+                        regionData[region].push(sku);
+                    }
+                }
+            }
+
+            if (Object.keys(regionData).length === 0) {
+                content.innerHTML = `
+                    <div class="empty-state">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+                        </svg>
+                        <p>No peak seasons in ${months[currentMonth - 1]}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const cards = Object.entries(regionData)
+                .sort((a, b) => b[1].length - a[1].length)
+                .map(([region, skus]) => `
+                    <div class="region-card">
+                        <div class="region-header">
+                            <span class="region-flag">${regionFlags[region] || '🌍'}</span>
+                            <span class="region-name">${region}</span>
+                        </div>
+                        <div class="sku-list">
+                            ${skus.map(sku => `<span class="sku-tag peak">${sku}</span>`).join('')}
+                        </div>
+                    </div>
+                `).join('');
+
+            content.innerHTML = `<div class="region-cards">${cards}</div>`;
+        }
+
+        function populateSKUSelector() {
+            const select = document.getElementById('sku-select');
+            Object.keys(seasonalityData).sort().forEach(sku => {
+                const option = document.createElement('option');
+                option.value = sku;
+                option.textContent = sku;
+                select.appendChild(option);
+            });
+        }
+
+        function updateMatrix() {
+            const sku = document.getElementById('sku-select').value;
+            const content = document.getElementById('matrix-content');
+
+            if (!sku) {
+                content.innerHTML = '';
+                return;
+            }
+
+            const data = seasonalityData[sku];
+            const regions = Object.keys(data);
+
+            let tableHTML = `
+                <div class="matrix-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Month</th>
+                                ${regions.map(r => `<th>${regionFlags[r] || '🌍'} ${r}</th>`).join('')}
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            for (let i = 0; i < 12; i++) {
+                const month = i + 1;
+                tableHTML += `<tr><td><strong>${months[i]}</strong></td>`;
+                
+                for (const region of regions) {
+                    const seasons = data[region];
+                    let cellContent = '—';
+                    let cellClass = 'season-none';
+                    
+                    if (seasons.peak.includes(month)) {
+                        cellContent = 'Peak';
+                        cellClass = 'season-peak';
+                    } else if (seasons.available.includes(month)) {
+                        cellContent = 'Available';
+                        cellClass = 'season-available';
+                    }
+                    
+                    tableHTML += `<td><span class="season-cell ${cellClass}">${cellContent}</span></td>`;
+                }
+                
+                tableHTML += '</tr>';
+            }
+
+            tableHTML += `
+                        </tbody>
+                    </table>
+                </div>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-dot season-peak"></div>
+                        <span>Peak Season (Best quality & price)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot season-available"></div>
+                        <span>Available (Regular supply)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background: #e2e8f0"></div>
+                        <span>Not in season</span>
+                    </div>
+                </div>
+            `;
+
+            content.innerHTML = tableHTML;
+        }
+
+        function showTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.getElementById('upcoming-tab').style.display = tabName === 'upcoming' ? 'block' : 'none';
+            document.getElementById('lookup-tab').style.display = tabName === 'lookup' ? 'block' : 'none';
+        }
+
+        init();
+    </script>
+</body>
+</html>
